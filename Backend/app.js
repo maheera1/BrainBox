@@ -14,11 +14,13 @@ mongoose
   .catch((err) => console.error('MongoDB connection failed:', err));
 
 // Routes
-// app.use('/api/admin', require('./routes/adminRoutes'));
-// app.use('/api/teacher', require('./routes/teacherRoutes'));
-// app.use('/api/student', require('./routes/studentRoutes'));
-// app.use('/api/groups', require('./routes/groupRoutes'));
-// app.use('/api/resources', require('./routes/resourceRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/teacher', require('./routes/teacherRoutes'));
+app.use('/api/student', require('./routes/studentRoutes'));
+//app.use('/api/groups', require('./routes/groupRoutes'));
+//app.use('/api/resources', require('./routes/resourceRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes')); 
 
 // Error Handling Middleware (optional)
 app.use((err, req, res, next) => {

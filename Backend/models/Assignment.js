@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const AssignmentSchema = new mongoose.Schema({
     groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

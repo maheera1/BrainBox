@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const GroupSchema = new mongoose.Schema({
     name: { type: String, required: true },
     subject: { type: String, required: true },

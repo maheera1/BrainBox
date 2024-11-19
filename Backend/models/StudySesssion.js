@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const StudySessionSchema = new mongoose.Schema({
     groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
     scheduledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
