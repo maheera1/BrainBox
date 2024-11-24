@@ -1,7 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { registerTeacher, loginTeacher, addStudent } = require('../controllers/teacherController');
-const { authenticateUser } = require('../middlewares/authMiddleware');
+const { 
+    registerTeacher, 
+    loginTeacher, 
+    addStudent, 
+    viewProfile, 
+    updateProfile, 
+    requestAccountDeletion 
+} = require('../controllers/teacherController');
+const { authenticateUser, authorizeRoles } = require('../middlewares/authMiddleware');
+const { getNotifications, markAsRead } = require('../controllers/notificationController');
 
 // Teacher Registration
 router.post('/register', registerTeacher);
@@ -11,5 +19,17 @@ router.post('/login', loginTeacher);
 
 // Add Student (Teacher adding a student)
 router.post('/add-student', authenticateUser, addStudent);
+
+// View Profile
+router.get('/profile', authenticateUser, viewProfile);
+
+// Update Profile
+router.put('/profile', authenticateUser, updateProfile);
+
+// Request Account Deletion
+router.post('/deletion-request', authenticateUser, requestAccountDeletion);
+
+router.get('/notifications', authenticateUser, authorizeRoles(['Admin', 'Teacher', 'Student']), getNotifications);
+router.put('/notifications/:id/read', authenticateUser, markAsRead);
 
 module.exports = router;

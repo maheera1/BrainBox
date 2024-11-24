@@ -115,3 +115,43 @@ exports.registerTeacher = async (req, res) => {
     }
   };
   
+  exports.viewProfile = async (req, res) => {
+    try {
+        const teacher = await User.findById(req.user.id).select('-passwordHash');
+        if (!teacher) {
+            return res.status(404).send({ message: 'Teacher not found' });
+        }
+        res.send(teacher);
+    } catch (err) {
+        res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+  const updates = req.body;
+
+  try {
+      const teacher = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-passwordHash');
+      if (!teacher) {
+          return res.status(404).send({ message: 'Teacher not found' });
+      }
+      res.send({ message: 'Profile updated successfully', teacher });
+  } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+  }
+};
+
+exports.requestAccountDeletion = async (req, res) => {
+    try {
+        const notification = new Notification({
+            message: `Teacher ${req.user.fullName} has requested account deletion.`,
+            type: 'DeletionRequest',
+            userId: req.user.id,
+        });
+
+        await notification.save();
+        res.send({ message: 'Account deletion request submitted successfully' });
+    } catch (err) {
+        res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+};

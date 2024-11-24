@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 exports.registerAdmin = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -76,6 +77,115 @@ exports.loginAdmin = async (req, res) => {
       await teacher.save();
   
       res.send({ message: 'Teacher approved successfully!' });
+    } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+  };
+  
+  exports.getAllUsers = async (req, res) => {
+    try {
+      // Fetch teachers and students separately
+      const teachers = await User.find({ role: 'Teacher' });
+      const students = await User.find({ role: 'Student' });
+  
+      // Send a structured response
+      res.send({
+        teachers,
+        students,
+      });
+    } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+  };
+  
+
+  exports.updateUser = async (req, res) => {
+    const { id } = req.params;
+    const updates = req.body; // Expects an object of fields to update
+    try {
+      const user = await User.findByIdAndUpdate(id, updates, { new: true });
+      if (!user) return res.status(404).send({ message: 'User not found' });
+      res.send({ message: 'User updated successfully', user });
+    } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+  };
+
+  exports.deleteUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await User.findByIdAndDelete(id);
+      if (!user) return res.status(404).send({ message: 'User not found' });
+      res.send({ message: 'User deleted successfully' });
+    } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+  };
+
+  exports.getDeletionRequests = async (req, res) => {
+    try {
+      const requests = await Notification.find({ type: 'DeletionRequest' });
+      res.send(requests);
+    } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+  };
+  exports.handleDeletionRequest = async (req, res) => {
+    const { id } = req.params; // Deletion request ID
+    const { action, userId } = req.body; // 'approve' or 'reject', and userId for both actions
+    
+    try {
+      // Find the deletion request notification
+      const request = await Notification.findById(id);
+      if (!request) {
+        return res.status(404).send({ message: 'Request not found' });
+      }
+  
+      if (!userId) {
+        return res.status(400).send({ message: 'UserId is required' });
+      }
+  
+      if (action === 'approve') {
+        // Find the user to delete using the passed userId
+        const userToDelete = await User.findById(userId);
+        if (!userToDelete) {
+          return res.status(404).send({ message: 'User not found for deletion' });
+        }
+  
+        // Delete the user if approved
+        await User.findByIdAndDelete(userToDelete._id);
+  
+        // Mark the request as handled
+        request.isRead = true;
+        await request.save();
+  
+        res.send({ message: 'Request approved and user deleted successfully.' });
+  
+      } else if (action === 'reject') {
+        // Find the user to reject using the passed userId
+        const userToReject = await User.findById(userId);
+        if (!userToReject) {
+          return res.status(404).send({ message: 'User not found for rejection' });
+        }
+  
+        // Notify the user about the rejection
+        const rejectionNotification = new Notification({
+          message: 'Your account deletion request has been rejected.',
+          recipientRole: userToReject.role,
+          data: { userId: userToReject._id }
+        });
+  
+        await rejectionNotification.save();
+  
+        // Mark the deletion request as handled
+        request.isRead = true;
+        await request.save();
+  
+        res.send({ message: 'Request rejected successfully and user notified.' });
+  
+      } else {
+        return res.status(400).send({ message: 'Invalid action. Please provide "approve" or "reject".' });
+      }
     } catch (err) {
       res.status(500).send({ message: 'Server Error', error: err.message });
     }
