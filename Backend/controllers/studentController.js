@@ -5,6 +5,7 @@ const GroupMember = require('../models/GroupMember'); // To manage group members
 const Assignment = require('../models/Assignment'); // For assignment-related logic
 const Submission = require('../models/Submission'); // To handle student submissions
 const Notification = require('../models/Notification');
+const Group = require('../models/Group');
 
 exports.loginStudent = async (req, res) => {
     const { email, password } = req.body;
@@ -75,4 +76,46 @@ exports.requestAccountDeletion = async (req, res) => {
     } catch (err) {
         res.status(500).send({ message: 'Server Error', error: err.message });
     }
+};
+
+// Student joins a group
+exports.joinGroup = async (req, res) => {
+  const { groupId } = req.body;
+  const studentId = req.user.id; // Extract student ID from token
+
+  try {
+    // Find the group by ID
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).send({ message: 'Group not found' });
+    }
+
+    // Check if the student is already in the group
+    const isAlreadyMember = group.members.some((member) => member.user.toString() === studentId);
+    if (isAlreadyMember) {
+      return res.status(400).send({ message: 'You are already a member of this group.' });
+    }
+
+    // Add the student to the group
+    group.members.push({ user: studentId, role: 'Student' });
+    await group.save();
+
+    res.send({ message: 'Successfully joined the group.', group });
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
+};
+
+// Student views all approved groups
+exports.getApprovedGroups = async (req, res) => {
+  try {
+    // Fetch only approved groups
+    const groups = await Group.find({ approved: true })
+      .select('name subject description createdBy members')
+      .populate('createdBy', 'fullName email') // Include teacher/admin who created the group
+      .populate('members.user', 'fullName email'); // Include basic member info
+    res.status(200).send(groups);
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
 };

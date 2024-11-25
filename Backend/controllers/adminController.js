@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Resource = require('../models/Resource');
 
 exports.registerAdmin = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -191,3 +192,27 @@ exports.loginAdmin = async (req, res) => {
     }
   };
   
+  // Admin sets permissions for a resource
+exports.setResourcePermissions = async (req, res) => {
+  const { resourceId, permissions } = req.body;
+
+  try {
+    const resource = await Resource.findById(resourceId);
+    if (!resource) {
+      return res.status(404).send({ message: 'Resource not found' });
+    }
+
+    // Ensure the user is an Admin
+    if (req.user.role !== 'Admin') {
+      return res.status(403).send({ message: 'Only Admin can set resource permissions' });
+    }
+
+    // Set permissions for the resource
+    resource.permissions = permissions;
+    await resource.save();
+
+    res.send({ message: 'Permissions updated successfully', resource });
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
+};

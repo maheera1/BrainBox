@@ -4,6 +4,8 @@ const User = require('../models/User'); // To interact with the User schema
 const Group = require('../models/Group'); // To handle groups if needed in teacher logic
 const GroupMember = require('../models/GroupMember'); // To handle group memberships
 const Notification = require('../models/Notification'); // Import the Notification model
+const Resource = require('../models/Resource');
+const mongoose = require('mongoose');
 
 exports.registerTeacher = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -154,4 +156,60 @@ exports.requestAccountDeletion = async (req, res) => {
     } catch (err) {
         res.status(500).send({ message: 'Server Error', error: err.message });
     }
+};
+
+// Teacher creates a group (Admin will approve it)
+exports.createGroup = async (req, res) => {
+  const { name, subject, description } = req.body;
+  const createdBy = req.user.id; // Teacher creating the group
+
+  const newGroup = new Group({
+    name,
+    subject,
+    description,
+    createdBy,
+    approved: false, // Pending approval by Admin
+    members: [{ user: createdBy, role: 'Teacher' }],
+  });
+
+  try {
+    const group = await newGroup.save();
+
+    // Notify Admin about the new group created
+    const notification = new Notification({
+      recipientRole: 'Admin',
+      message: `A new group "${name}" has been created and is awaiting approval.`,
+      data: { groupId: group._id },
+    });
+    await notification.save();
+
+    res.status(201).send(group);
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
+};
+
+// Teacher uploads a resource (not tied to a group initially)
+exports.uploadResource = async (req, res) => {
+  const { title, resourceType, url, filePath, tags } = req.body;
+  const uploadedBy = req.user.id; // Teacher who uploaded the resource
+
+  try {
+    // Create a new resource object (no group association initially)
+    const newResource = new Resource({
+      title,
+      resourceType,
+      url,
+      filePath,
+      tags,
+      uploadedBy,
+      permissions: {}, // Empty permissions initially
+    });
+
+    await newResource.save();
+
+    res.status(201).send({ message: 'Resource uploaded successfully', resource: newResource });
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
 };

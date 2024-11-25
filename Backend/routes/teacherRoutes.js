@@ -6,7 +6,9 @@ const {
     addStudent, 
     viewProfile, 
     updateProfile, 
-    requestAccountDeletion 
+    requestAccountDeletion,
+    createGroup,
+    uploadResource
 } = require('../controllers/teacherController');
 const { authenticateUser, authorizeRoles } = require('../middlewares/authMiddleware');
 const { getNotifications, markAsRead } = require('../controllers/notificationController');
@@ -31,5 +33,9 @@ router.post('/deletion-request', authenticateUser, requestAccountDeletion);
 
 router.get('/notifications', authenticateUser, authorizeRoles(['Admin', 'Teacher', 'Student']), getNotifications);
 router.put('/notifications/:id/read', authenticateUser, markAsRead);
+
+router.post('/groups', authenticateUser, authorizeRoles(['Teacher']), createGroup);
+
+router.post('/upload-resource', authenticateUser, authorizeRoles(['Teacher', 'Admin']), uploadResource);
 
 module.exports = router;

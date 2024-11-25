@@ -8,7 +8,8 @@ const {
   updateUser,
   deleteUser,
   getDeletionRequests,
-  handleDeletionRequest
+  handleDeletionRequest,
+  setResourcePermissions
 } = require('../controllers/adminController');
 const { authenticateUser, authorizeRoles } = require('../middlewares/authMiddleware');
 
@@ -27,5 +28,7 @@ router.delete('/users/:id', authenticateUser, authorizeRoles(['Admin']), deleteU
 // Handle Deletion Requests
 router.get('/deletion-requests', authenticateUser, authorizeRoles(['Admin']), getDeletionRequests);
 router.put('/deletion-requests/:id', authenticateUser, authorizeRoles(['Admin']), handleDeletionRequest);
+
+router.put('/resource/permissions', authenticateUser, authorizeRoles(['Admin']), setResourcePermissions);
 
 module.exports = router;
