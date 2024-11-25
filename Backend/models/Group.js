@@ -12,6 +12,7 @@ const GroupSchema = new mongoose.Schema({
       role: { type: String, enum: ['Teacher', 'Student'], required: true } // Role within the group
     }
   ],
+  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],  // New field for blocked users
   createdAt: { type: Date, default: Date.now }
 });
 

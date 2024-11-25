@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { authenticateUser, authorizeRoles } = require('../middlewares/authMiddleware');
 const {
-  createGroup,
   approveGroup,
   getGroups,
   editGroup,
   removeMember,
   deleteGroup,
-  setResourcePermissions,
+  blockUser,
+  unblockUser
 } = require('../controllers/groupController');
 
 // Admin views all groups
@@ -25,5 +25,11 @@ router.delete('/:groupId/member/:memberId', authenticateUser, authorizeRoles(['A
 
 // Admin deletes a group
 router.delete('/:id', authenticateUser, authorizeRoles(['Admin']), deleteGroup);
+
+// Block user from joining group (Admin only)
+router.post('/block', authenticateUser, authorizeRoles(['Admin']), blockUser);
+
+// Unblock user from joining group (Admin only)
+router.post('/unblock', authenticateUser, authorizeRoles(['Admin']), unblockUser);
 
 module.exports = router;

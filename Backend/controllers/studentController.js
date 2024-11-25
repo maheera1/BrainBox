@@ -79,6 +79,7 @@ exports.requestAccountDeletion = async (req, res) => {
 };
 
 // Student joins a group
+// Student joins a group
 exports.joinGroup = async (req, res) => {
   const { groupId } = req.body;
   const studentId = req.user.id; // Extract student ID from token
@@ -88,6 +89,11 @@ exports.joinGroup = async (req, res) => {
     const group = await Group.findById(groupId);
     if (!group) {
       return res.status(404).send({ message: 'Group not found' });
+    }
+
+    // Check if the group has blocked the student
+    if (group.blockedUsers.includes(studentId)) {
+      return res.status(403).send({ message: 'You are blocked from joining this group.' });
     }
 
     // Check if the student is already in the group

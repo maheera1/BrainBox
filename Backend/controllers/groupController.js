@@ -122,3 +122,67 @@ exports.deleteGroup = async (req, res) => {
     }
   };
   
+// Block user from joining group
+// Block user from joining group
+exports.blockUser = async (req, res) => {
+    const { groupId, userId } = req.body;
+  
+    try {
+      const group = await Group.findById(groupId);
+      if (!group) {
+        return res.status(404).send({ message: 'Group not found' });
+      }
+  
+      if (req.user.role !== 'Admin') {
+        return res.status(403).send({ message: 'Only Admin can block users' });
+      }
+  
+      // Check if the user is already blocked
+      if (group.blockedUsers.includes(userId)) {
+        return res.status(400).send({ message: 'User is already blocked' });
+      }
+  
+      // Add the user to the blockedUsers array
+      group.blockedUsers.push(userId);
+  
+      // Remove the user from the group if they're a member
+      group.members = group.members.filter(member => member.user.toString() !== userId);
+  
+      await group.save();
+  
+      res.send({ message: 'User blocked from joining the group and removed from members', group });
+    } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+  };
+  
+  // Unblock user from joining group
+  exports.unblockUser = async (req, res) => {
+    const { groupId, userId } = req.body; // Group and User to unblock
+  
+    try {
+      const group = await Group.findById(groupId);
+      if (!group) {
+        return res.status(404).send({ message: 'Group not found' });
+      }
+  
+      // Ensure the user is an Admin
+      if (req.user.role !== 'Admin') {
+        return res.status(403).send({ message: 'Only Admin can unblock users' });
+      }
+  
+      // Check if user is not blocked
+      if (!group.blockedUsers.includes(userId)) {
+        return res.status(400).send({ message: 'User is not blocked' });
+      }
+  
+      // Remove the user from the blockedUsers array
+      group.blockedUsers = group.blockedUsers.filter(user => user.toString() !== userId);
+      await group.save();
+  
+      res.send({ message: 'User unblocked and can now join the group', group });
+    } catch (err) {
+      res.status(500).send({ message: 'Server Error', error: err.message });
+    }
+  };
+  
