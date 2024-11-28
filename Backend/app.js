@@ -23,6 +23,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes')); 
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/reports', require('./routes/reportRoutes'));
 
 
 // Error Handling Middleware (optional)
