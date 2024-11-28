@@ -13,7 +13,11 @@ const GroupSchema = new mongoose.Schema({
     }
   ],
   blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],  // New field for blocked users
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  chatSettings: {
+    enableChatForStudents: { type: Boolean, default: true }, // Whether students can chat
+  },
+  
 });
 
 module.exports = mongoose.model('Group', GroupSchema);

@@ -2,7 +2,6 @@ const bcrypt = require('bcrypt'); // For hashing passwords and comparing them
 const jwt = require('jsonwebtoken'); // For generating and verifying JWT tokens
 const User = require('../models/User'); // To interact with the User schema
 const Group = require('../models/Group'); // To handle groups if needed in teacher logic
-const GroupMember = require('../models/GroupMember'); // To handle group memberships
 const Notification = require('../models/Notification'); // Import the Notification model
 const Resource = require('../models/Resource');
 const mongoose = require('mongoose');

@@ -21,6 +21,8 @@ app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api/resources', require('./routes/resourceRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes')); 
+app.use('/api/chat', require('./routes/chatRoutes'));
+
 
 // Error Handling Middleware (optional)
 app.use((err, req, res, next) => {
