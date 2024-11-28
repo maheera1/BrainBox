@@ -17,7 +17,8 @@ const ResourceSchema = new mongoose.Schema({
       of: [String], 
       default: {} // Permissions will be managed later
     },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    views: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model('Resource', ResourceSchema);

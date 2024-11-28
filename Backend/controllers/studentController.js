@@ -5,34 +5,38 @@ const Notification = require('../models/Notification');
 const Group = require('../models/Group');
 
 exports.loginStudent = async (req, res) => {
-    const { email, password } = req.body;
-  
-    try {
-      // Find student by email
-      const student = await User.findOne({ email, role: 'Student' });
-      if (!student) {
-        return res.status(404).send({ message: 'Student not found' });
-      }
-  
-      // Compare password
-      const isMatch = await bcrypt.compare(password, student.passwordHash);
-      if (!isMatch) {
-        return res.status(400).send({ message: 'Invalid credentials' });
-      }
-  
-      // Generate JWT
-      const token = jwt.sign(
-        { id: student._id, role: student.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '1d' }
-      );
-  
-      res.send({ message: 'Login successful', token });
-    } catch (err) {
-      res.status(500).send({ message: 'Server Error', error: err.message });
+  const { email, password } = req.body;
+
+  try {
+    // Find student by email
+    const student = await User.findOne({ email, role: 'Student' });
+    if (!student) {
+      return res.status(404).send({ message: 'Student not found' });
     }
-  };
-  
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, student.passwordHash);
+    if (!isMatch) {
+      return res.status(400).send({ message: 'Invalid credentials' });
+    }
+
+    // Update `updatedAt`
+    student.updatedAt = new Date();
+    await student.save();
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: student._id, role: student.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.send({ message: 'Login successful', token });
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
+};
+
   exports.viewProfile = async (req, res) => {
     try {
         const student = await User.findById(req.user.id).select('-passwordHash');
@@ -53,6 +57,9 @@ exports.updateProfile = async (req, res) => {
       if (!student) {
           return res.status(404).send({ message: 'Student not found' });
       }
+       // Update `updatedAt`
+    user.updatedAt = new Date();
+    await user.save();
       res.send({ message: 'Profile updated successfully', student });
   } catch (err) {
       res.status(500).send({ message: 'Server Error', error: err.message });

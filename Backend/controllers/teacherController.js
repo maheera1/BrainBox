@@ -44,39 +44,44 @@ exports.registerTeacher = async (req, res) => {
     res.status(500).send({ message: 'Server Error', error: err.message });
   }
 };  
-  exports.loginTeacher = async (req, res) => {
-    const { email, password } = req.body;
-  
-    try {
-      // Find teacher by email
-      const teacher = await User.findOne({ email, role: 'Teacher' });
-      if (!teacher) {
-        return res.status(404).send({ message: 'Teacher not found' });
-      }
-  
-      // Check if teacher is approved
-      if (!teacher.isApproved) {
-        return res.status(403).send({ message: 'Account not approved by Admin yet.' });
-      }
-  
-      // Compare password
-      const isMatch = await bcrypt.compare(password, teacher.passwordHash);
-      if (!isMatch) {
-        return res.status(400).send({ message: 'Invalid credentials' });
-      }
-  
-      // Generate JWT
-      const token = jwt.sign(
-        { id: teacher._id, role: teacher.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '1d' }
-      );
-  
-      res.send({ message: 'Login successful', token });
-    } catch (err) {
-      res.status(500).send({ message: 'Server Error', error: err.message });
+exports.loginTeacher = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find teacher by email
+    const teacher = await User.findOne({ email, role: 'Teacher' });
+    if (!teacher) {
+      return res.status(404).send({ message: 'Teacher not found' });
     }
-  };
+
+    // Check if teacher is approved
+    if (!teacher.isApproved) {
+      return res.status(403).send({ message: 'Account not approved by Admin yet.' });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, teacher.passwordHash);
+    if (!isMatch) {
+      return res.status(400).send({ message: 'Invalid credentials' });
+    }
+
+    // Update `updatedAt`
+    teacher.updatedAt = new Date();
+    await teacher.save();
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: teacher._id, role: teacher.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.send({ message: 'Login successful', token });
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
+};
+
   
   exports.addStudent = async (req, res) => {
     const { studentDetails } = req.body;
@@ -136,6 +141,9 @@ exports.updateProfile = async (req, res) => {
       if (!teacher) {
           return res.status(404).send({ message: 'Teacher not found' });
       }
+       // Update `updatedAt`
+    user.updatedAt = new Date();
+    await user.save();
       res.send({ message: 'Profile updated successfully', teacher });
   } catch (err) {
       res.status(500).send({ message: 'Server Error', error: err.message });

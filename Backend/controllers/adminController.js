@@ -36,33 +36,37 @@ exports.registerAdmin = async (req, res) => {
 };
 
 exports.loginAdmin = async (req, res) => {
-    const { email, password } = req.body;
-  
-    try {
-      // Find user by email
-      const admin = await User.findOne({ email, role: 'Admin' });
-      if (!admin) {
-        return res.status(404).send({ message: 'Admin not found' });
-      }
-  
-      // Compare password
-      const isMatch = await bcrypt.compare(password, admin.passwordHash);
-      if (!isMatch) {
-        return res.status(400).send({ message: 'Invalid credentials' });
-      }
-  
-      // Generate JWT
-      const token = jwt.sign(
-        { id: admin._id, role: admin.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '1d' }
-      );
-  
-      res.send({ message: 'Login successful', token });
-    } catch (err) {
-      res.status(500).send({ message: 'Server Error', error: err.message });
+  const { email, password } = req.body;
+
+  try {
+    // Find user by email
+    const admin = await User.findOne({ email, role: 'Admin' });
+    if (!admin) {
+      return res.status(404).send({ message: 'Admin not found' });
     }
-  };
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, admin.passwordHash);
+    if (!isMatch) {
+      return res.status(400).send({ message: 'Invalid credentials' });
+    }
+
+    // Update `updatedAt`
+    admin.updatedAt = new Date();
+    await admin.save();
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: admin._id, role: admin.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.send({ message: 'Login successful', token });
+  } catch (err) {
+    res.status(500).send({ message: 'Server Error', error: err.message });
+  }
+};
 
   exports.approveTeacher = async (req, res) => {
     const { id } = req.params;
@@ -106,6 +110,9 @@ exports.loginAdmin = async (req, res) => {
     try {
       const user = await User.findByIdAndUpdate(id, updates, { new: true });
       if (!user) return res.status(404).send({ message: 'User not found' });
+       // Update `updatedAt`
+    user.updatedAt = new Date();
+    await user.save();
       res.send({ message: 'User updated successfully', user });
     } catch (err) {
       res.status(500).send({ message: 'Server Error', error: err.message });
